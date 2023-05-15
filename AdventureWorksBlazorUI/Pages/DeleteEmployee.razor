@@ -1,0 +1,94 @@
+﻿@page "/DeleteEmployee"
+
+<PageTitle>Delete Employee</PageTitle>
+
+@using AdventureWorksBlazorUI.Data;
+@using AdventureWorksBlazorUI.Models.DropDowns
+@using AdventureWorksBlazorClassLibrary.Data
+@inject IDropDownData _dropDownData
+@inject INonSalesEmployeeData _employeeData
+@inject IJSRuntime _js
+@inject WireUpLists _lists
+
+<div class="text-center mt-3">
+    <label style="font-size: 50px;color: indigo;">Delete Employee</label>
+</div>
+
+<div class="d-flex flex-column min-vh-100 min-vw-100">
+    @if (_uiEmployees is null || _employee is null)
+    {
+        {
+            <p class="d-flex flex-grow-1 justify-content-center align-items-center" style="font-size: 75px"><em>Loading...</em></p>
+        }
+    }
+    else
+    {
+        <div class="d-flex flex-grow-1 justify-content-center align-items-center">
+            <EditForm Model=@_employee OnValidSubmit="@DeleteNonSalesEmployee">
+                <DataAnnotationsValidator/>
+                <ValidationSummary/>
+
+                <div class="row m-3 pb-5">
+                    <InputSelect @bind-Value=@_employee.FullName class="form-select" style="width:350px">
+                        <option value="" selected disabled>Select Employee</option>
+                        @foreach (var employee in _uiEmployees)
+                        {
+                            <option value="@employee.FullName" @key="employee">@employee.FullName</option>
+                        }
+                    </InputSelect>
+                </div>
+
+                <div class="text-center">
+                    <button type="submit" class="btn btn-primary" style="width:150px">Submit</button>
+                </div>
+            </EditForm>
+        </div>
+    }
+</div>
+
+@code 
+{
+    private EmployeeFullNameUIModeI _employee = new();
+    private List<EmployeeFullNameUIModeI> _uiEmployees = new();
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _uiEmployees = await _lists.EmployeeFullNameList();
+        }
+        catch(Exception e)
+        {
+            await _js.InvokeVoidAsync("alert", e.Message);
+        }
+    }
+
+    private async void DeleteNonSalesEmployee()
+    {
+        try
+        {
+            bool confirmed = await _js.InvokeAsync<bool>("confirm", $"Are You Sure You Want To Delete {_employee.FullName}?");
+            if (confirmed)
+            {
+                await _employeeData.DeleteNonSalesEmployee(_employee.FullName);
+
+                var item = _uiEmployees.SingleOrDefault(e => e.FullName == _employee.FullName);
+                if (item is not null)
+                {
+                    _uiEmployees.Remove(item);
+                    _employee.FullName = "";
+                    StateHasChanged();
+                }
+
+                await _js.InvokeVoidAsync("alert", "Success!");
+            }
+            else
+            {
+                return;
+            }
+        }
+        catch (Exception e)
+        {
+            await _js.InvokeVoidAsync("alert", e.Message);
+        }
+    }
+}

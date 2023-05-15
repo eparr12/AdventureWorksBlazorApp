@@ -1,0 +1,176 @@
+﻿@page "/ViewEmployee"
+
+<PageTitle>View Employee</PageTitle>
+
+@using AdventureWorksBlazorUI.Data;
+@using AdventureWorksBlazorUI.Models.DropDowns
+@using AdventureWorksBlazorClassLibrary.Data
+@using AdventureWorksBlazorClassLibrary.Models
+@inject IDropDownData _dropDownData
+@inject INonSalesEmployeeData _employeeData
+@inject IJSRuntime _js
+@inject WireUpLists _lists
+
+<div class="text-center mt-3">
+    <label style="font-size: 50px;color: indigo;">View Employee</label>
+</div>
+
+<div class="d-flex flex-column min-vh-100 min-vw-100">
+    @if (_uiEmployees is null || _allEmployeeInformation is null || _employee is null)
+    {
+        {
+            <p class="d-flex flex-grow-1 justify-content-center align-items-center" style="font-size: 75px"><em>Loading...</em></p>
+        }
+    }
+    else
+    {
+    <div class = "d-flex flex-grow-1 justify-content-center m-5">
+        <EditForm Model=@_employee>
+                <InputSelect Value="@_employee.FullName" ValueExpression="()=>_employee.FullName" ValueChanged="(string s)=>ViewSelectedEmployee(s)" class="form-select" style="width:350px">
+                <option value="" selected disabled>Select Employee</option>
+                <option value="All">All</option>
+                @foreach (var employee in _uiEmployees)
+                {
+                    <option value="@employee.FullName">@employee.FullName</option>
+                }
+            </InputSelect>
+        </EditForm>    
+    </div>
+
+        <div class = "d-flex flex-grow-1 justify-content-center align-content-start">
+    <div class="table-responsive">
+        <table class="table m-3 w-auto table-hover table-striped table-bordered text-nowrap" id="ViewEmployeeTable">
+        <thead>
+            <tr>
+            <th scope="col">Name</th>
+            <th scope="col">ID</th>
+            <th scope="col">Employee Type</th>
+            <th scope="col">Social Security #</th>
+            <th scope="col">Login</th>
+            <th scope="col">Email</th>
+            <th scope="col">Phone #</th>
+            <th scope="col">Phone Type</th>
+            <th scope="col">Address</th>
+            <th scope="col">City</th>
+            <th scope="col">State/Province</th>
+            <th scope="col">Postal Code</th>
+            <th scope="col">Country</th>
+            <th scope="col">Marital Status</th>
+            <th scope="col">Gender</th>
+            <th scope="col">Job Group</th>
+            <th scope="col">Job Department</th>
+            <th scope="col">Job Title</th>
+            <th scope="col">Shift</th>
+            <th scope="col">Pay Frequency</th>
+            <th scope="col">Vacation Hrs.</th>
+            <th scope="col">Sick Leave Hrs.</th>
+            <th scope="col">Pay</th>
+            <th scope="col">Birth Date</th>
+            <th scope="col">Hire Date</th>
+            </tr>
+        </thead>
+        <tbody >
+            @foreach (var employee in _employeeInformationList)
+            {
+                <tr>
+                    <td>@employee.PersonName</td>
+                    <td>@employee.PersonID</td>
+                    <td>@employee.PersonType</td>
+                    <td>@employee.SocialSecurityNumber</td>
+                    <td>@employee.LoginID</td>
+                    <td>@employee.EmailAddress</td>
+                    <td>@employee.PhoneNumber</td>
+                    <td>@employee.PhoneNumberType</td>
+                    <td>@employee.AddressLine1</td>
+                    <td>@employee.City</td>
+                    <td>@employee.StateOrProvince</td>
+                    <td>@employee.PostalCode</td>
+                    <td>@employee.Country</td>
+                    <td>@employee.MaritalStatus</td>
+                    <td>@employee.Gender</td>
+                    <td>@employee.JobGroup</td>
+                    <td>@employee.JobDepartment</td>
+                    <td>@employee.JobTitle</td>
+                    <td>@employee.ShiftName</td>
+                    <td>@employee.PayFrequency</td>
+                    <td>@employee.VacationHours</td>
+                    <td>@employee.SickLeaveHours</td>
+                    <td>@employee.FormatHourlyPay</td>
+                    <td>@employee.FormatBirthDate</td>
+                    <td>@employee.FormatHireDate</td>
+                </tr>
+            }
+        </tbody>
+        </table>
+    </div>
+    </div>
+    }
+</div>
+@code 
+{
+    private EmployeeFullNameUIModeI _employee = new();
+    private List<EmployeeFullNameUIModeI> _uiEmployees = new();
+    private List<NonSalesEmployeeInformationModel> _allEmployeeInformation = new();
+    private List<NonSalesEmployeeInformationModel> _employeeInformationList = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _uiEmployees = await _lists.EmployeeFullNameList();
+
+            _allEmployeeInformation = await _employeeData.GetNonSalesEmployees();
+
+            _employeeInformationList = new();
+
+            foreach (NonSalesEmployeeInformationModel e in _allEmployeeInformation)
+            {
+                _employeeInformationList.Add(e);
+            }
+        }
+        catch (Exception e)
+        {
+            await _js.InvokeVoidAsync("alert", e.Message);
+        }
+    }
+
+    private async void ViewSelectedEmployee(string name)
+    {
+        try
+        {
+            if (name == "All")
+            {
+                if (_allEmployeeInformation.Count == 0)
+                {
+                    _allEmployeeInformation = await _employeeData.GetNonSalesEmployees();
+                }
+                else
+                {
+                    _employeeInformationList.Clear();
+                    foreach (NonSalesEmployeeInformationModel e in _allEmployeeInformation)
+                    {
+                        _employeeInformationList.Add(e);
+                    }
+                }
+            }
+            else
+            {
+                var e = _allEmployeeInformation.Find(a => a.PersonName == name);
+
+                if (e is not null)
+                {
+                    _employeeInformationList.Clear();
+                    _employeeInformationList.Add(e);
+                }
+                else
+                {
+                    await _js.InvokeVoidAsync("alert", name + " Was Not Found!");
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            await _js.InvokeVoidAsync("alert", e.Message);
+        }
+    }
+}

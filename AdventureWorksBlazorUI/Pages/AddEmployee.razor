@@ -1,0 +1,420 @@
+﻿@page "/AddEmployee"
+
+<PageTitle>Add Employee</PageTitle>
+
+@using AdventureWorksBlazorClassLibrary.Models;
+@using AdventureWorksBlazorUI.Data;
+@using AdventureWorksBlazorUI.Models.DropDowns
+@using AdventureWorksBlazorClassLibrary.Data
+@using AdventureWorksBlazorUI.Models;
+@using AutoMapper;
+@inject IDropDownData _dropDownData
+@inject INonSalesEmployeeData _employeeData
+@inject IJSRuntime _js
+@inject WireUpLists _lists
+@inject IMapper _mapper
+@inject NavigationManager _nav
+
+<div class="text-center mt-3">
+    <label style="font-size: 50px;color: indigo;">Add Employee</label>
+</div>
+
+<div class="d-flex flex-column min-vh-100 min-vw-100">
+    @if (_uiDepartmentList is null || _uiStateProvinceList is null || _userRole is null || _employee is null)
+    {
+        {
+            <p class="d-flex flex-grow-1 justify-content-center align-items-center" style="font-size: 75px"><em>Loading...</em></p>
+        }
+    }
+    else
+    {
+         <EditForm Model=@_employee OnValidSubmit="@AddNonSalesEmployee">
+            <DataAnnotationsValidator/>
+            <ValidationSummary/>
+            <div class="row m-5">
+                <div class="col mx-4">
+                    <div class="form-floating">
+                        <InputSelect @bind-Value=@_employee.Title  class="form-select" id="AddTitle">
+                            @foreach (var t in _title)
+                            {
+                                <option value="@t">@t</option>
+                            }
+                        </InputSelect>
+                        <label for="AddTitle">Title</label>
+                    </div>
+                </div>
+
+                <div class="col mx-4">
+                    <div class="form-floating">
+                        <InputText @bind-Value=@_employee.FirstName class="form-control"id="AddFirstName">
+                        </InputText>
+                        <label for="AddFirstName">First Name</label>
+                    </div>
+                </div>
+
+                <div class="col mx-4">
+                    <div class="form-floating">
+                        <InputText @bind-Value=@_employee.MiddleName class="form-control"id="AddMiddleName">
+                        </InputText>
+                        <label for="AddMiddleName">Middle Name</label>
+                    </div>
+                </div>
+
+                <div class="col mx-4">
+                    <div class="form-floating">
+                        <InputText @bind-Value=@_employee.LastName class="form-control"id="AddLastName">
+                        </InputText>
+                        <label for="AddLastName">Last Name</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row m-5">
+                <div class="col mx-4">
+                    <div class="form-floating">
+                        <InputSelect @bind-Value=@_employee.Suffix  class="form-select" id="AddSuffix">
+                            @foreach (var s in _suffix)
+                            {
+                                <option value="@s">@s</option>
+                            }
+                        </InputSelect>
+                        <label for="AddSuffix">Suffix</label>
+                    </div>
+                </div>
+
+                <div class="col mx-4">
+                    <div class="form-floating">
+                        <InputText @bind-Value=@_employee.Password type="password" class="form-control"id="AddPassword">
+                        </InputText>
+                        <label for="AddPassword">Password</label>
+                    </div>
+                </div>
+
+                <div class="col mx-4">
+                    <div class="form-floating">
+                        <InputText @bind-Value=@_employee.VerifyPassword type="password" class="form-control"id="AddVerifyPassword">
+                        </InputText>
+                        <label for="AddVerifyPassword">Verify Password</label>
+                    </div>
+                </div>
+
+                <div class="col mx-4">
+                    <div class="form-floating">
+                        <InputText @bind-Value=@_employee.PhoneNumber class="form-control" id="AddPhoneNumber">
+                        </InputText>
+                        <label for="AddPhoneNumber">Phone Number</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row m-5">
+                <div class="col mx-4">
+                    <div class="form-floating">
+                        <InputSelect @bind-Value=@_employee.PhoneNumberType  class="form-select" id="AddPhoneNumberTypeID">
+                            @foreach (var p in _phoneNumberType)
+                            {
+                                <option value="@p">@p</option>
+                            }
+                        </InputSelect>
+                        <label for="AddPhoneNumberTypeID">Phone Number Type</label>
+                    </div>
+                </div>
+
+                <div class="col mx-4">
+                    <div class="form-floating">
+                        <InputText @bind-Value=@_employee.AddressLine1 class="form-control" id="AddAddress">
+                        </InputText>
+                        <label for="AddAddress">Address</label>
+                    </div>
+                </div>
+
+                <div class="col mx-4">
+                    <div class="form-floating">
+                        <InputText @bind-Value=@_employee.City class="form-control" id="AddCity">
+                        </InputText>
+                        <label for="AddCity">City</label>
+                    </div>
+                </div>
+
+                <div class="col mx-4">
+                    <div class="form-floating">
+                        <InputSelect @bind-Value=@_employee.StateOrProvince  class="form-select" id="AddStateProvinceID">
+                            <option value=""></option>
+                            @foreach (var s in _uiStateProvinceList)
+                            {
+                                <option value="@s.Name">@s.Name</option>
+                            }
+                        </InputSelect>
+                        <label for="AddStateProvinceID">State Or Province</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row m-5">
+                <div class="col mx-4">
+                    <div class="form-floating">
+                        <InputText @bind-Value=@_employee.PostalCode class="form-control" id="AddPostalCode">
+                        </InputText>
+                        <label for="AddPostalCode">Postal Code</label>
+                    </div>
+                </div>
+
+                <div class="col mx-4">
+                    <div class="form-floating">
+                        <InputSelect @bind-Value=@_employee.AddressTypeID  class="form-select" id="AddAddressTypeID">
+                            @foreach (var a in _addressTypeID)
+                            {
+                                <option value="@a">@a</option>
+                            }
+                        </InputSelect>
+                        <label for="AddAddressTypeID">Address Type</label>
+                    </div>
+                </div>
+
+                <div class="col mx-4">
+                    <div class="form-floating">
+                        <InputText @bind-Value=@_employee.EmailAddress type="email" class="form-control" id="AddEmailAddress">
+                        </InputText>
+                        <label for="AddEmailAddress">Email Address</label>
+                    </div>
+                </div>
+
+                <div class="col mx-4">
+                    <div class="form-floating">
+                        <InputText @bind-Value=@_employee.SocialSecurityNumber class="form-control" id="AddNationalIDNumber">
+                        </InputText>
+                        <label for="AddNationalIDNumber">National ID Number</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row m-5">
+                <div class="col mx-4">
+                    <div class="form-floating">
+                        <InputText @bind-Value=@_employee.LoginID class="form-control" id="AddLoginID">
+                        </InputText>
+                        <label for="AddLoginID">LoginID</label>
+                    </div>
+                </div>
+
+                <div class="col mx-4">
+                    <div class="form-floating">
+                        <InputText @bind-Value=@_employee.VerifyLoginID class="form-control" id="AddVerifyLoginID">
+                        </InputText>
+                        <label for="AddVerifyLoginID">Verify LoginID</label>
+                    </div>
+                </div>
+
+                <div class="col mx-4">
+                    <div class="form-floating">
+                        <InputText @bind-Value=@_employee.JobTitle class="form-control" id="AddJobTitle">
+                        </InputText>
+                        <label for="AddJobTItle">Job Title</label>
+                    </div>
+                </div>
+
+                <div class="col mx-4">
+                    <div class="form-floating">
+                        <InputDate @bind-Value=@_employee.BirthDate class="form-control" id="AddBirthDate">
+                        </InputDate>
+                        <label for="AddBirthDate">Birth Date</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row m-5">
+                <div class="col mx-4">
+                    <div class="form-floating">
+                        <InputSelect @bind-Value=@_employee.MaritalStatus  class="form-select" id="AddMaritalStatus">
+                            @foreach (var m in _maritalStatus)
+                            {
+                                <option value="@m">@m</option>
+                            }
+                        </InputSelect>
+                        <label for="AddMaritalStatus">Marital Status</label>
+                    </div>
+                </div>
+
+                <div class="col mx-4">
+                    <div class="form-floating">
+                        <InputSelect @bind-Value=@_employee.Gender  class="form-select" id="AddGender">
+                            @foreach (var g in _gender)
+                            {
+                                <option value="@g">@g</option>
+                            }
+                        </InputSelect>
+                        <label for="AddGender">Gender</label>
+                    </div>
+                </div>
+
+                <div class="col mx-4">
+                    <div class="form-floating">
+                        <InputDate @bind-Value=@_employee.HireDate class="form-control" id="AddHireDate">
+                        </InputDate>
+                        <label for="AddHireDate">Hire Date</label>
+                        </div>
+                </div>
+
+                <div class="col mx-4">
+                    <label class="mr-5 pt-3" style="font-size:25px">Salaried</label>
+                    <InputRadioGroup @bind-Value=@_employee.SalariedFlag>
+                        <label class="ms-5">Yes</label>
+                        <InputRadio Value=true class="mr-5"></InputRadio>
+                        <label class="ms-5">No</label>
+                        <InputRadio Value=false></InputRadio>
+                    </InputRadioGroup>
+                </div>
+            </div>
+
+            <div class="row m-5">
+                <div class="col mx-4">
+                    <div class="form-floating">
+                        <InputNumber @bind-Value=@_employee.VacationHours type="number" class="form-control" id="AddVacationHours">
+                        </InputNumber>
+                        <label for="AddVacationHours">Vacation Hours</label>
+                    </div>
+                </div>
+
+                <div class="col mx-4">
+                    <div class="form-floating">
+                        <InputNumber @bind-Value=@_employee.SickLeaveHours type="number" class="form-control" id="AddSickLeaveHours">
+                        </InputNumber>
+                        <label for="AddSickLeaveHours">Sick Leave Hours</label>
+                    </div>
+                </div>
+
+                <div class="col mx-4">
+                    <div class="form-floating">
+                        <InputNumber @bind-Value=@_employee.HourlyPayRate type="number" class="form-control" id="AddHourlyPayRate">
+                        </InputNumber>
+                        <label for="AddHourlyPayRate">Pay Rate</label>
+                    </div>
+                </div>
+
+                <div class="col mx-4">
+                    <div class="form-floating">
+                        <InputSelect @bind-Value=@_employee.PayFrequency  class="form-select" id="AddPayFrequency">
+                            @foreach (var p in _payFrequency)
+                            {
+                                <option value="@p">@p</option>
+                            }
+                        </InputSelect>
+                        <label for="AddPayFrequency">Pay Frequency</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row m-5">
+                <div class="col mx-4">
+                    <div class="form-floating">
+                        <InputSelect @bind-Value=@_employee.JobDepartment  class="form-select" id="AddDepartmentID">
+                            <option value=""></option>
+                            @foreach (var d in _uiDepartmentList)
+                            {
+                                <option value="@d.Name">@d.Name</option>
+                            }
+                        </InputSelect>
+                        <label for="AddDepartmentID">Department</label>
+                    </div>
+                </div>
+
+                <div class="col mx-4">
+                    <label class="mx-3 pt-3" style="font-size:25px">Shift</label>
+                    <InputRadioGroup @bind-Value=@_employee.ShiftID>
+                        <label class="ms-5">1st</label>
+                        <InputRadio Value=1 class="mr-5"></InputRadio>
+                        <label class="ms-4">2nd</label>
+                        <InputRadio Value=2></InputRadio>
+                        <label class="ms-5">3rd</label>
+                        <InputRadio Value=3></InputRadio>
+                    </InputRadioGroup>
+                </div>
+
+                <div class="col mx-4">
+                    <div class="form-floating">
+                        <InputDate @bind-Value=@_employee.StartDate class="form-control" id="AddStartDate">
+                        </InputDate>
+                        <label for="AddStartDate">Start Date</label>
+                    </div>
+                </div>
+
+                <div class="col mx-4">
+                    <div class="form-floating">
+                        <InputSelect @bind-Value=@_employee.Role  class="form-select" id="AddRole">
+                            @foreach (var r in _userRole)
+                            {
+                                <option value="@r">@r</option>
+                            }
+                        </InputSelect>
+                        <label for="AddRole">Role</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center">
+                <button type="submit" class="btn btn-primary" style="width: 150px">Submit</button>
+            </div>
+        </EditForm>
+    }
+</div>
+
+@code 
+{
+    private List<StateProvinceIDUIModel> _uiStateProvinceList =new();
+    private List<DepartmentIDUIModel> _uiDepartmentList = new();
+    private List<string> _title = new();
+    private List<string> _suffix = new();
+    private List<string> _phoneNumberType = new();
+    private List<string> _addressTypeID = new();
+    private List<string> _maritalStatus = new();
+    private List<string> _gender = new();
+    private List<string> _payFrequency = new();
+    private List<string> _userRole = new();
+    private AddNonSalesEmployeeUIModel _employee = new();
+    private AddNonSalesEmployeeModel _libraryEmployee = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _uiStateProvinceList = await _lists.StateProvinceIDList();
+            _uiDepartmentList = await _lists.DepartmentIDList();
+            _title = _lists.TitleList();
+            _suffix = _lists.SuffixList();
+            _phoneNumberType = _lists.PhoneNumberTypeList();
+            _addressTypeID = _lists.AddressTypeIDList();
+            _maritalStatus = _lists.MaritalStatusList();
+            _gender = _lists.GenderList();
+            _payFrequency = _lists.PayFrequencyList();
+            _userRole = _lists.UserRoleList();
+        }
+        catch (Exception e)
+        {
+            await _js.InvokeVoidAsync("alert", e.Message);
+        }
+    }
+
+    private async void AddNonSalesEmployee()
+    {
+        try
+        {
+            bool confirmed = await _js.InvokeAsync<bool>("confirm", $"Are You Sure You Want To Add {_employee.FirstName} {_employee.MiddleName} {_employee.LastName}?");
+            if (confirmed)
+            {
+                _libraryEmployee = _mapper.Map<AddNonSalesEmployeeModel>(_employee);
+                await _employeeData.AddNonSalesEmployee(_libraryEmployee);
+                _employee = new();
+                StateHasChanged();
+                await _js.InvokeVoidAsync("alert", "Success!");
+            }
+            else
+            {
+                return;
+            }
+        }
+        catch (Exception e)
+        {
+            await _js.InvokeVoidAsync("alert", e.Message);
+        }
+    }
+}
